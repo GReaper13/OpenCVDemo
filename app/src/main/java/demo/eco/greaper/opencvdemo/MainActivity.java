@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
@@ -81,10 +82,16 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.btn_choose_file)
     public void onViewClicked() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
+//        Intent intent = new Intent();
+//        intent.setType("image/*");
+//        intent.setAction(Intent.ACTION_GET_CONTENT);
+//        startActivityForResult(Intent.createChooser(intent, "Select Picture"), PICK_IMAGE);
+//        String path = getPath(getApplicationContext(), data.getData());
+        String path = Environment.getExternalStorageDirectory().getAbsolutePath() + "/" + Environment.DIRECTORY_DCIM + "/Camera/1529401200051.jpg";
+        Log.d("okokok", path);
+        Intent intent = new Intent(MainActivity.this, EditActivity.class);
+        intent.putExtra(AppUtils.KEY_PATH_INTENT, path);
+        startActivity(intent);
     }
 
     @Override
