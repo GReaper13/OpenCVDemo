@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="filter_titles">
+        <item>None</item>
+        <item>Sajuno</item>
+        <item>Manglow</item>
+        <item>Palacia</item>
+        <item>Anax</item>
+        <item>Sepia</item>
+        <item>Cyano</item>
+        <item>B/W</item>
+        <item>Ansel</item>
+        <item>Grain</item>
+        <item>Hist Equal</item>
+        <item>Threshold</item>
+        <item>Negative</item>
+        <item>Green Boost</item>
+        <item>Boost Red</item>
+        <item>Blue Boost</item>
+        <item>Colour Enhance</item>
+        <item>Cyanisation</item>
+        <item>Fade</item>
+        <item>Cartoonify</item>
+        <item>Edgify</item>
+        <item>Pencil Sketch</item>
+        <item>Violet Tone</item>
+        <item>Yellow Enhance</item>
+    </string-array>
+
+    <integer-array name="enhance_icons">
+        <item>@drawable/ic_bright</item>
+        <item>@drawable/ic_contrast</item>
+        <item>@drawable/ic_hue</item>
+        <item>@drawable/ic_saturation</item>
+        <item>@drawable/ic_temp</item>
+        <item>@drawable/ic_tint</item>
+        <item>@drawable/ic_vignette</item>
+        <item>@drawable/ic_sharp</item>
+        <item>@drawable/ic_blur</item>
+        <item>@drawable/ic_gradient_black_24dp</item>
+    </integer-array>
+
+    <string-array name="enhance_titles">
+        <item>bright</item>
+        <item>contrast</item>
+        <item>hue</item>
+        <item>satur</item>
+        <item>temp</item>
+        <item>tint</item>
+        <item>vignette</item>
+        <item>sharp</item>
+        <item>blur</item>
+        <item>gamma</item>
+    </string-array>
+
+    <integer-array name="sticker_icons">
+        <item>@drawable/ic_facial</item>
+        <item>@drawable/ic_hearts</item>
+        <item>@drawable/ic_objects</item>
+        <item>@drawable/ic_comments</item>
+        <item>@drawable/ic_wishes</item>
+        <item>@drawable/ic_emoji</item>
+        <item>@drawable/ic_hashtag</item>
+    </integer-array>
+
+    <string-array name="sticker_titles">
+        <item>facial</item>
+        <item>express</item>
+        <item>objects</item>
+        <item>comments</item>
+        <item>wishes</item>
+        <item>emojis</item>
+        <item>hashtag</item>
+    </string-array>
+</resources>

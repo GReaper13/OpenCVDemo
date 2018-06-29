@@ -1,0 +1,318 @@
+package demo.eco.greaper.opencvdemo;
+
+import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.drawable.BitmapDrawable;
+import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.PopupWindow;
+import android.widget.SeekBar;
+import android.widget.TextView;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
+import demo.eco.greaper.opencvdemo.base.BaseEditFragment;
+import demo.eco.greaper.opencvdemo.model.ColorListAdapter;
+import demo.eco.greaper.opencvdemo.view.CustomPaintView;
+import demo.eco.greaper.opencvdemo.view.PaintModelView;
+import demo.eco.greaper.opencvdemo.view.StickerTask;
+
+public class PaintFragment extends BaseEditFragment implements ColorListAdapter.IColorListAction {
+    @BindView(R.id.paint_cancel)
+    ImageButton paintCancel;
+    @BindView(R.id.paint_thumb)
+    PaintModelView paintThumb;
+    @BindView(R.id.paint_color_list)
+    RecyclerView paintColorList;
+    @BindView(R.id.paint_eraser)
+    ImageView paintEraser;
+    @BindView(R.id.paint_apply)
+    ImageButton paintApply;
+    Unbinder unbinder;
+
+    private View mainView;
+    private ColorListAdapter mColorAdapter;
+    private View popView;
+
+    private CustomPaintView mPaintView;
+
+//    private ColorPicker mColorPicker;
+
+    private PopupWindow setStokenWidthWindow;
+    private SeekBar mStokenWidthSeekBar;
+
+    public boolean isEraser = false;
+
+    private SaveCustomPaintTask mSavePaintImageTask;
+
+    public int[] mPaintColors = {Color.BLACK,
+            Color.DKGRAY, Color.GRAY, Color.LTGRAY, Color.WHITE,
+            Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.CYAN, Color.MAGENTA};
+
+    public static PaintFragment newInstance() {
+        PaintFragment fragment = new PaintFragment();
+        return fragment;
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        mainView = inflater.inflate(R.layout.fragment_paint, null);
+        unbinder = ButterKnife.bind(this, mainView);
+        return mainView;
+    }
+
+    @Override
+    public void onDetach() {
+        resetPaintView();
+        super.onDetach();
+    }
+
+    private void resetPaintView() {
+        if (null != mPaintView) {
+            mPaintView.reset();
+            mPaintView.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+
+        mPaintView = getActivity().findViewById(R.id.custom_paint_view);
+
+//        mColorPicker = new ColorPicker(getActivity(), 255, 0, 0);
+        initColorListView();
+
+        initStokeWidthPopWindow();
+
+        updateEraserView();
+        onShow();
+    }
+
+    private void initColorListView() {
+
+        paintColorList.setHasFixedSize(false);
+
+        LinearLayoutManager stickerListLayoutManager = new LinearLayoutManager(activity);
+        stickerListLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
+
+        paintColorList.setLayoutManager(stickerListLayoutManager);
+        mColorAdapter = new ColorListAdapter(this, mPaintColors, this);
+        paintColorList.setAdapter(mColorAdapter);
+
+    }
+
+    public void backToMain() {
+        activity.changeMode(EditActivity.MODE_WRITE);
+        activity.changeBottomFragment(EditActivity.MODE_MAIN);
+        activity.writeFragment.clearSelection();
+        activity.mainImage.setVisibility(View.VISIBLE);
+        this.mPaintView.reset();
+        this.mPaintView.setVisibility(View.GONE);
+    }
+
+    public void onShow() {
+        activity.changeMode(EditActivity.MODE_PAINT);
+        activity.mainImage.setImageBitmap(activity.mainBitmap);
+        activity.mPaintView.mainBitmap = activity.mainBitmap;
+        activity.mPaintView.mainImage = activity.mainImage;
+        this.mPaintView.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onColorSelected(int position, int color) {
+        setPaintColor(color);
+    }
+
+    @Override
+    public void onMoreSelected(int position) {
+        selectPaintColor();
+    }
+
+    private void selectPaintColor() {
+//        final AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(getActivity());
+//        final View dialogLayout = getActivity().getLayoutInflater().inflate(R.layout.color_piker_accent, null);
+////        final LineColorPicker colorPicker = (LineColorPicker) dialogLayout.findViewById(R.id.color_picker_accent);
+////        final TextView dialogTitle = (TextView) dialogLayout.findViewById(R.id.cp_accent_title);
+////        dialogTitle.setText(R.string.paint_color_title);
+////        colorPicker.setColors(ColorPalette.getAccentColors(activity.getApplicationContext()));
+////        colorPicker.setOnColorChangedListener(new OnColorChangedListener() {
+////            @Override
+////            public void onColorChanged(int c) {
+////                dialogTitle.setBackgroundColor(c);
+////
+////            }
+////        });
+//        dialogBuilder.setView(dialogLayout);
+//        dialogBuilder.setNeutralButton(getString(R.string.cancel).toUpperCase(), new DialogInterface.OnClickListener() {
+//            @Override
+//            public void onClick(DialogInterface dialog, int which) {
+//                dialog.cancel();
+//            }
+//        });
+//        dialogBuilder.setPositiveButton(getString(R.string.ok_action).toUpperCase(), new DialogInterface.OnClickListener() {
+//            public void onClick(DialogInterface dialog, int which) {
+//                setPaintColor(colorPicker.getColor());
+//            }
+//        });
+//        dialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//            @Override
+//            public void onDismiss(DialogInterface dialog) {
+//                dialog.dismiss();
+//            }
+//        });
+//        dialogBuilder.show();
+    }
+
+    protected void setPaintColor(final int paintColor) {
+        paintThumb.setPaintStrokeColor(paintColor);
+        updatePaintView();
+    }
+
+    private void updatePaintView() {
+        isEraser = false;
+        updateEraserView();
+
+        this.mPaintView.setColor(paintThumb.getStokenColor());
+        this.mPaintView.setWidth(paintThumb.getStokenWidth());
+    }
+
+    protected void setStokeWidth() {
+        if (popView.getMeasuredHeight() == 0) {
+            popView.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+        }
+
+        mStokenWidthSeekBar.setMax(paintThumb.getMeasuredWidth() / 2);
+
+        mStokenWidthSeekBar.setProgress((int) paintThumb.getStokenWidth());
+
+        mStokenWidthSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                paintThumb.setPaintStrokeWidth(progress);
+                updatePaintView();
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        setStokenWidthWindow.showAtLocation(this.getActivity().getWindow().getDecorView(),
+                Gravity.NO_GRAVITY, 0, activity.mainImage.getHeight() - popView.getMeasuredHeight() / 2);
+    }
+
+    // this layout like a horizontal progress bar to set stroke of paint
+    private void initStokeWidthPopWindow() {
+        popView = LayoutInflater.from(activity).
+                inflate(R.layout.view_set_stoke_width, null);
+        setStokenWidthWindow = new PopupWindow(popView, ViewGroup.LayoutParams.MATCH_PARENT
+                , ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        mStokenWidthSeekBar = (SeekBar) popView.findViewById(R.id.stoke_width_seekbar);
+
+        setStokenWidthWindow.setFocusable(true);
+        setStokenWidthWindow.setOutsideTouchable(true);
+        setStokenWidthWindow.setBackgroundDrawable(new BitmapDrawable());
+
+        paintThumb.setPaintStrokeColor(Color.RED);
+        paintThumb.setPaintStrokeWidth(10);
+
+        updatePaintView();
+    }
+
+    private void toggleEraserView() {
+        isEraser = !isEraser;
+            updateEraserView();
+    }
+
+    private void updateEraserView() {
+        paintEraser.setImageResource(isEraser ? R.drawable.eraser_seleced : R.drawable.eraser_normal);
+        mPaintView.setEraser(isEraser);
+    }
+
+    public void applyPaintImage() {
+        if (mSavePaintImageTask != null && !mSavePaintImageTask.isCancelled()) {
+            mSavePaintImageTask.cancel(true);
+        }
+
+        mSavePaintImageTask = new SaveCustomPaintTask(activity, activity.mainImage.getImageViewMatrix());
+        mSavePaintImageTask.execute(activity.mainBitmap);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+//        unbinder.unbind();
+    }
+
+    @OnClick({R.id.paint_cancel, R.id.paint_thumb, R.id.paint_eraser, R.id.paint_apply})
+    public void onViewClicked(View view) {
+        switch (view.getId()) {
+            case R.id.paint_cancel:
+                backToMain();
+                break;
+            case R.id.paint_thumb:
+                setStokeWidth();
+                break;
+            case R.id.paint_eraser:
+                toggleEraserView();
+                break;
+            case R.id.paint_apply:
+                applyPaintImage();
+                break;
+        }
+    }
+
+    private final class SaveCustomPaintTask extends StickerTask {
+
+        public SaveCustomPaintTask(EditActivity activity, Matrix imageViewMatrix) {
+            super(activity, imageViewMatrix);
+        }
+
+        @Override
+        public void handleImage(Canvas canvas, Matrix m) {
+            float[] f = new float[9];
+            m.getValues(f);
+            int dx = (int) f[Matrix.MTRANS_X];
+            int dy = (int) f[Matrix.MTRANS_Y];
+            float scale_x = f[Matrix.MSCALE_X];
+            float scale_y = f[Matrix.MSCALE_Y];
+            canvas.save();
+            canvas.translate(dx, dy);
+            canvas.scale(scale_x, scale_y);
+
+            if (mPaintView.getPaintBit() != null) {
+                canvas.drawBitmap(mPaintView.getPaintBit(), 0, 0, null);
+            }
+            canvas.restore();
+        }
+
+        @Override
+        public void onPostResult(Bitmap result) {
+            mPaintView.reset();
+            activity.changeMainBitmap(result);
+            backToMain();
+        }
+    }
+}
